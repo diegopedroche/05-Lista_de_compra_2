@@ -2,12 +2,14 @@ package com.example.a05_listadecompra;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.os.Bundle;
 
 import com.example.a05_listadecompra.Adapters.ProductosAdapter;
 import com.example.a05_listadecompra.Modelos.Producto;
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,8 +52,14 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(binding.toolbar);
         productosList = new ArrayList<>();
 
+        int columnas;
+        // Horizontal -> 2
+        // Vertical -> 1
+        // Desde las configuraciones de la actividad -> orientation // portrait(Vertical) / landscape(Horizontal)
+        columnas = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? 1 : 2;
+
         adapter = new ProductosAdapter(productosList, R.layout.producto_model_card,this);
-        layoutManager = new GridLayoutManager(this,1);
+        layoutManager = new GridLayoutManager(this,columnas);
         binding.contentMain.contenedor.setAdapter(adapter);
         binding.contentMain.contenedor.setLayoutManager(layoutManager);
 
@@ -66,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private AlertDialog createProducto(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        builder.setTitle("Agregar producto");
+        builder.setTitle(getString(R.string.alert_title_crear));
         builder.setCancelable(false);
 
         View productoAlertView = LayoutInflater.from(this).inflate(R.layout.producto_model_alert,null);
@@ -122,8 +130,8 @@ public class MainActivity extends AppCompatActivity {
         txtCantidad.addTextChangedListener(textWatcher);
         txtPrecio.addTextChangedListener(textWatcher);
 
-        builder.setNegativeButton("CANCELAR",null);
-        builder.setPositiveButton("AGREGAR", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(getString(R.string.btn_alert_cancel),null);
+        builder.setPositiveButton(getString(R.string.btn_alert_crear), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 if(!txtNombre.getText().toString().isEmpty() && !txtCantidad.getText().toString().isEmpty() && !txtPrecio.getText().toString().isEmpty()){
@@ -137,5 +145,27 @@ public class MainActivity extends AppCompatActivity {
         });
 
         return builder.create();
+    }
+
+    /**
+     * Se dispara ANTES de que se elimine la actividad
+     * @param outState -> guardo datos
+     */
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("LISTA",productosList);
+    }
+
+    /**
+     * Se dispara DESPUÉS de crear la actividad de nuevo
+     * @param savedInstanceState -> recupero datos
+     */
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        ArrayList<Producto> temp = (ArrayList<Producto>) savedInstanceState.getSerializable("LISTA");
+        productosList.addAll(temp);
+        adapter.notifyItemRangeInserted(0,productosList.size());
     }
 }

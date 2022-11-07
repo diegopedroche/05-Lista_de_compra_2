@@ -1,6 +1,8 @@
 package com.example.a05_listadecompra.Modelos;
 
-public class Producto {
+import java.io.Serializable;
+
+public class Producto implements Serializable {
     private String nombre;
     private int cantidad;
     private float precio;
