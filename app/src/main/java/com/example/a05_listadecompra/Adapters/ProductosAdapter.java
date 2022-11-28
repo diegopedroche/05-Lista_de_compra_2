@@ -3,8 +3,10 @@ package com.example.a05_listadecompra.Adapters;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,8 +19,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.a05_listadecompra.MainActivity;
 import com.example.a05_listadecompra.Modelos.Producto;
 import com.example.a05_listadecompra.R;
+import com.google.gson.Gson;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -35,7 +39,6 @@ public class ProductosAdapter extends RecyclerView.Adapter<ProductosAdapter.Prod
         this.context = context;
     }
 
-    @NonNull
     @Override
     public ProductoVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View productoFilaView = LayoutInflater.from(context).inflate(resource,null);
@@ -83,6 +86,7 @@ public class ProductosAdapter extends RecyclerView.Adapter<ProductosAdapter.Prod
             @Override
             public void onClick(View view) {
                 updateProducto(producto, holder.getAdapterPosition()).show();
+                MainActivity.guardarEnSP();
             }
         });
     }
@@ -159,6 +163,7 @@ public class ProductosAdapter extends RecyclerView.Adapter<ProductosAdapter.Prod
                     producto.setCantidad(Integer.parseInt(txtCantidad.getText().toString()));
                     producto.setPrecio(Float.parseFloat(txtPrecio.getText().toString()));
                     notifyItemChanged(adapterPosition);
+                    MainActivity.guardarEnSP();
                 }else{
                     Toast.makeText(context,"FALTAN DATOS",Toast.LENGTH_SHORT).show();
                 }
@@ -178,6 +183,7 @@ public class ProductosAdapter extends RecyclerView.Adapter<ProductosAdapter.Prod
             public void onClick(DialogInterface dialogInterface, int i) {
                 objects.remove(producto);
                 notifyItemRemoved(adapterPosition);
+                MainActivity.guardarEnSP();
             }
         });
 

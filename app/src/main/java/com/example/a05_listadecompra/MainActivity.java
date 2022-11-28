@@ -2,6 +2,7 @@ package com.example.a05_listadecompra;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 
@@ -17,10 +18,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
 import com.example.a05_listadecompra.databinding.ActivityMainBinding;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,16 +34,19 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.lang.reflect.Type;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-    private ArrayList<Producto> productosList;
+    private static ArrayList<Producto> productosList;
+    public static SharedPreferences sharedPreferences;
 
     // Recycler
-    private ProductosAdapter adapter;
+    private static ProductosAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
     @Override
@@ -51,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
         productosList = new ArrayList<>();
+        sharedPreferences = getSharedPreferences(Constantes.DATOS, MODE_PRIVATE);
 
         int columnas;
         // Horizontal -> 2
@@ -62,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         layoutManager = new GridLayoutManager(this,columnas);
         binding.contentMain.contenedor.setAdapter(adapter);
         binding.contentMain.contenedor.setLayoutManager(layoutManager);
+        cargarDatos();
 
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,6 +79,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    public static void guardarEnSP(){
+        String contactosSTR = new Gson().toJson(productosList);
+        Log.d("JSON",contactosSTR);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(Constantes.COMPRA, contactosSTR);
+        editor.apply();
+    }
+
+    public void cargarDatos(){
+        if (sharedPreferences.contains(Constantes.COMPRA) && !sharedPreferences.getString(Constantes.COMPRA,"").isEmpty()){
+            String contactosSTR = sharedPreferences.getString(Constantes.COMPRA,"");
+            Type tipo = new TypeToken< ArrayList<Producto> >(){}.getType();
+            List<Producto> temp = new Gson().fromJson(contactosSTR, tipo);
+            productosList.clear();
+            productosList.addAll(temp);
+            adapter.notifyItemRangeInserted(0,productosList.size());
+            Toast.makeText(MainActivity.this, "Elementos cargados", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     private AlertDialog createProducto(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -138,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     Producto producto = new Producto(txtNombre.getText().toString(),Integer.parseInt(txtCantidad.getText().toString()),Float.parseFloat(txtPrecio.getText().toString()));
                     productosList.add(0, producto);
                     adapter.notifyItemInserted(0);
+                    guardarEnSP();
                 }else{
                     Toast.makeText(MainActivity.this,"FALTAN DATOS",Toast.LENGTH_SHORT).show();
                 }
